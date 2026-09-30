@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limit Notation Practice</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js" id="MathJax-script" async></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  min-height:100vh; padding:20px; color:#333;
+}
+.container {
+  max-width:1050px; margin:0 auto; background:white; border-radius:12px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:40px; min-height:80vh;
+  display:flex; flex-direction:column;
+}
+header { text-align:center; margin-bottom:30px; border-bottom:3px solid #667eea; padding-bottom:20px; }
+h1 { color:#667eea; font-size:2.3em; margin-bottom:8px; }
+.subtitle { color:#666; font-size:1.05em; }
+.progress-bar { width:100%; height:8px; background:#e0e0e0; border-radius:4px; margin:18px 0; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#667eea,#764ba2); transition:width .3s ease; }
+.meta-row { font-size:0.9em; color:#999; display:flex; justify-content:space-between; }
+.difficulty-badge { background:#667eea; color:white; padding:3px 12px; border-radius:20px; font-size:0.85em; }
+.main-content { display:grid; grid-template-columns:1fr 1.15fr; gap:35px; flex:1; }
+.left-panel, .right-panel { display:flex; flex-direction:column; }
+.problem-section {
+  background:#f8f9ff; padding:22px; border-radius:8px; margin-bottom:18px; border-left:5px solid #667eea;
+}
+.problem-label { font-size:0.85em; color:#999; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.function-display {
+  background:white; padding:18px; border-radius:6px; text-align:center; font-size:1.3em; min-height:50px;
+  display:flex; align-items:center; justify-content:center;
+}
+.prompt { font-size:1.05em; color:#444; margin-top:14px; line-height:1.6; }
+.graph-toggle {
+  background:#667eea; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;
+  font-size:0.92em; margin-bottom:15px; transition:background .3s;
+}
+.graph-toggle:hover { background:#764ba2; }
+.graph-container { background:white; border:2px solid #e0e0e0; border-radius:8px; padding:12px; margin-bottom:18px; }
+.graph-container.hidden { display:none; }
+.hint-toggle-btn {
+  background:#fff5e6; color:#c05621; border:1.5px solid #f6ad55; padding:8px 16px; border-radius:6px;
+  cursor:pointer; font-size:0.88em; margin-bottom:10px;
+}
+.hint-box {
+  background:#fff5e6; border-left:4px solid #f6ad55; padding:14px; border-radius:4px; margin-bottom:15px;
+  font-size:0.92em; color:#744210; line-height:1.55; display:none;
+}
+.hint-box.show { display:block; }
+
+.classification-section { background:white; border:2px solid #ddd; border-radius:8px; padding:20px; margin-bottom:18px; }
+.section-label { font-size:0.85em; color:#999; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.classification-question, .phase-prompt { font-size:1.02em; color:#444; margin-bottom:14px; line-height:1.5; }
+.classification-buttons { display:flex; gap:12px; }
+.classify-btn {
+  flex:1; padding:14px; border:2px solid #667eea; background:white; color:#667eea; border-radius:6px;
+  font-size:1em; font-weight:bold; cursor:pointer; transition:all .2s;
+}
+.classify-btn:hover:not(:disabled) { background:#f0f4ff; }
+.classify-btn.correct { background:#c6f6d5; border-color:#48bb78; color:#22543d; }
+.classify-btn.incorrect { background:#fed7d7; border-color:#f56565; color:#742a2a; }
+.classify-btn:disabled { cursor:default; }
+.classification-feedback { margin-top:12px; font-size:0.92em; line-height:1.5; min-height:1.2em; }
+.classification-feedback.correct-text { color:#22543d; }
+.classification-feedback.incorrect-text { color:#9c4221; }
+
+.statements-section { background:white; border:2px solid #ddd; border-radius:8px; padding:20px; margin-bottom:18px; }
+.statements-section.locked { opacity:0.4; pointer-events:none; }
+.syntax-guide {
+  font-size:0.82em; color:#666; background:#f0f4ff; padding:10px 12px; border-radius:6px; margin-bottom:16px; line-height:1.5;
+}
+.statement-row { border:1.5px solid #e5e5e5; border-radius:8px; padding:14px; margin-bottom:14px; background:#fafbff; }
+.statement-label { font-size:0.8em; color:#999; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.limit-inputs { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.lim-word { font-size:1.15em; font-weight:bold; color:#333; font-style:italic; }
+.approach-input, .output-input {
+  padding:10px; border:2px solid #ddd; border-radius:6px; font-size:0.98em; font-family:'Courier New',monospace;
+  transition:border-color .3s; flex:1; min-width:110px;
+}
+.approach-input:focus, .output-input:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.1); }
+.eq-sign { font-size:1.15em; font-weight:bold; color:#333; }
+.preview-box {
+  background:white; border:1.5px dashed #c9d4f7; border-radius:6px; padding:10px; text-align:center;
+  min-height:40px; display:flex; align-items:center; justify-content:center; font-size:0.95em;
+}
+.button-group { display:flex; gap:10px; margin-top:6px; }
+.submit-btn {
+  flex:1; padding:13px 22px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none;
+  border-radius:6px; font-size:1em; font-weight:bold; cursor:pointer; transition:transform .2s, box-shadow .2s;
+}
+.submit-btn:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(102,126,234,0.3); }
+.submit-btn:disabled { opacity:0.6; cursor:default; transform:none; box-shadow:none; }
+.next-btn {
+  flex:1; padding:13px 22px; background:#48bb78; color:white; border:none; border-radius:6px; font-size:1em;
+  font-weight:bold; cursor:pointer; transition:transform .2s, box-shadow .2s;
+}
+.next-btn:hover { background:#38a169; transform:translateY(-2px); box-shadow:0 10px 20px rgba(72,187,120,0.3); }
+.feedback { padding:14px; border-radius:6px; margin-top:14px; display:none; line-height:1.55; font-size:0.95em; }
+.feedback.show { display:block; }
+.feedback.success { background:#c6f6d5; border-left:4px solid #48bb78; color:#22543d; }
+.feedback.error { background:#fed7d7; border-left:4px solid #f56565; color:#742a2a; }
+.feedback-title { font-weight:bold; margin-bottom:5px; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:18px; padding-top:18px; border-top:2px solid #e0e0e0; }
+.stat-box { background:#f0f4ff; padding:14px; border-radius:6px; text-align:center; }
+.stat-number { font-size:1.9em; font-weight:bold; color:#667eea; }
+.stat-label { font-size:0.85em; color:#999; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+.completion-message {
+  text-align:center; padding:30px; background:linear-gradient(135deg,#48bb78 0%,#38a169 100%); color:white;
+  border-radius:8px; display:none;
+}
+.completion-message.show { display:block; }
+.completion-message h2 { font-size:2em; margin-bottom:15px; }
+.completion-message p { font-size:1.1em; margin-bottom:20px; }
+.reset-btn {
+  background:white; color:#38a169; border:2px solid white; padding:12px 30px; border-radius:6px; font-weight:bold;
+  cursor:pointer; font-size:1em; transition:all .3s;
+}
+.reset-btn:hover { background:transparent; color:white; }
+@media (max-width:1024px) { .main-content { grid-template-columns:1fr; gap:20px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Limit Notation Practice</h1>
+    <p class="subtitle">Master writing limits for rational functions — discontinuities and end behavior</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="meta-row">
+      <span>Problem <span id="problemNumber">1</span> of <span id="totalProblems">13</span></span>
+      <span class="difficulty-badge" id="difficultyBadge">Easy</span>
+    </div>
+  </header>
+
+  <div id="completionMessage" class="completion-message">
+    <h2>🎉 Excellent Work!</h2>
+    <p>You've completed all limit notation problems.</p>
+    <p id="finalScore"></p>
+    <button class="reset-btn" onclick="resetAll()">Start Over</button>
+  </div>
+
+  <div id="mainContent" class="main-content">
+    <div class="left-panel">
+      <div class="problem-section">
+        <div class="problem-label">Function</div>
+        <div class="function-display" id="functionDisplay"></div>
+        <div class="prompt" id="prompt"></div>
+      </div>
+
+      <button class="graph-toggle" onclick="toggleGraph()">📊 Show Graph</button>
+      <div class="graph-container hidden" id="graphContainer"><canvas id="myChart"></canvas></div>
+
+      <button class="hint-toggle-btn" onclick="toggleHint()">💡 Show Hint</button>
+      <div class="hint-box" id="hintBox"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="classification-section" id="classificationSection">
+        <div class="section-label">Step 1: Classify the Discontinuity</div>
+        <div class="classification-question" id="classificationQuestion"></div>
+        <div class="classification-buttons">
+          <button class="classify-btn" id="holeBtn" onclick="selectClassification('hole')">Hole</button>
+          <button class="classify-btn" id="asymptoteBtn" onclick="selectClassification('asymptote')">Vertical Asymptote</button>
+        </div>
+        <div class="classification-feedback" id="classificationFeedback"></div>
+      </div>
+
+      <div class="statements-section" id="statementsSection">
+        <div class="section-label" id="statementsLabel">Step 2: Write the Limit Statement(s)</div>
+        <div class="phase-prompt" id="statementsPrompt"></div>
+        <div class="syntax-guide">
+          Type <strong>-&gt;</strong> and it becomes <strong>→</strong> automatically. Add a trailing
+          <strong>-</strong> or <strong>+</strong> for one-sided limits (e.g. <code>x-&gt;3-</code>).
+          Type <strong>inf</strong> or <strong>-inf</strong> for infinity. Fractions like <code>3/2</code> are fine.
+        </div>
+        <div id="statementRows"></div>
+        <div class="button-group">
+          <button class="submit-btn" id="checkBtn" onclick="checkStatements()">Check Answer</button>
+          <button class="next-btn" id="nextBtn" onclick="nextProblem()" style="display:none;">Next Problem →</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box"><div class="stat-number" id="correct">0</div><div class="stat-label">Correct</div></div>
+        <div class="stat-box"><div class="stat-number" id="attempted">0</div><div class="stat-label">Attempted</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const problems = [
+  { id:1, difficulty:'Easy', type:'point', func:'(x-1)/(x-1)', funcLatex:'f(x) = \\dfrac{x-1}{x-1}', a:1,
+    classification:'hole', left:{approach:'x→1-',output:'1'}, right:{approach:'x→1+',output:'1'}, holeY:1,
+    endBehavior:{ posInf:{approach:'x→inf',output:'1'}, negInf:{approach:'x→-inf',output:'1'} },
+    hint:'Since (x−1) cancels from the numerator and denominator, f(x) simplifies to 1 everywhere except at x=1, where there is a hole. For end behavior: since f(x) is just the constant 1, the limit is 1 as x→±∞.',
+    xRange:[-2,4], yRange:[-1,3] },
+  { id:2, difficulty:'Easy', type:'point', func:'(x-2)/(x-2)', funcLatex:'f(x) = \\dfrac{x-2}{x-2}', a:2,
+    classification:'hole', left:{approach:'x→2-',output:'1'}, right:{approach:'x→2+',output:'1'}, holeY:1,
+    endBehavior:{ posInf:{approach:'x→inf',output:'1'}, negInf:{approach:'x→-inf',output:'1'} },
+    hint:'The factor (x−2) cancels, leaving f(x)=1 everywhere except x=2, which is a hole. For end behavior: f(x) is the constant 1, so the limit is 1 as x→±∞.',
+    xRange:[-1,5], yRange:[-1,3] },
+  { id:3, difficulty:'Easy', type:'point', func:'1/(x-1)', funcLatex:'f(x) = \\dfrac{1}{x-1}', a:1,
+    classification:'asymptote', left:{approach:'x→1-',output:'-inf'}, right:{approach:'x→1+',output:'inf'},
+    endBehavior:{ posInf:{approach:'x→inf',output:'0'}, negInf:{approach:'x→-inf',output:'0'} },
+    hint:'The denominator is zero at x=1 but the numerator is not, so this is a vertical asymptote — from the left it goes to −∞, from the right to +∞. For end behavior: the numerator\'s degree (0) is less than the denominator\'s degree (1), so f(x)→0 as x→±∞.',
+    xRange:[-2,4], yRange:[-10,10] },
+  { id:4, difficulty:'Easy', type:'point', func:'1/(x-2)^2', funcLatex:'f(x) = \\dfrac{1}{(x-2)^2}', a:2,
+    classification:'asymptote', left:{approach:'x→2-',output:'inf'}, right:{approach:'x→2+',output:'inf'},
+    endBehavior:{ posInf:{approach:'x→inf',output:'0'}, negInf:{approach:'x→-inf',output:'0'} },
+    hint:'(x−2)² is positive on both sides of x=2, so 1/(x−2)² goes to +∞ from both sides. For end behavior: the denominator\'s degree is higher, so f(x)→0 as x→±∞.',
+    xRange:[-1,5], yRange:[-2,15] },
+  { id:5, difficulty:'Medium', type:'point', func:'(x^2-1)/(x-1)', funcLatex:'f(x) = \\dfrac{x^2-1}{x-1}', a:1,
+    classification:'hole', left:{approach:'x→1-',output:'2'}, right:{approach:'x→1+',output:'2'}, holeY:2,
+    endBehavior:{ posInf:{approach:'x→inf',output:'inf'}, negInf:{approach:'x→-inf',output:'-inf'} },
+    hint:'Factor the numerator: (x−1)(x+1). After canceling (x−1), f(x)=x+1, which equals 2 at x=1. For end behavior: since f(x) simplifies to the line x+1, it increases without bound as x→∞ and decreases without bound as x→−∞.',
+    xRange:[-3,4], yRange:[-2,5] },
+  { id:6, difficulty:'Medium', type:'point', func:'(x^2+x-2)/(x-1)', funcLatex:'f(x) = \\dfrac{x^2+x-2}{x-1}', a:1,
+    classification:'hole', left:{approach:'x→1-',output:'3'}, right:{approach:'x→1+',output:'3'}, holeY:3,
+    endBehavior:{ posInf:{approach:'x→inf',output:'inf'}, negInf:{approach:'x→-inf',output:'-inf'} },
+    hint:'Factor the numerator: (x+2)(x−1). After canceling (x−1), f(x)=x+2, which equals 3 at x=1. For end behavior: f(x) simplifies to the line x+2, so it grows without bound: →∞ as x→∞ and →−∞ as x→−∞.',
+    xRange:[-4,4], yRange:[-2,6] },
+  { id:7, difficulty:'Medium', type:'point', func:'1/(x^2-4)', funcLatex:'f(x) = \\dfrac{1}{x^2-4}', a:2,
+    classification:'asymptote', left:{approach:'x→2-',output:'-inf'}, right:{approach:'x→2+',output:'inf'},
+    endBehavior:{ posInf:{approach:'x→inf',output:'0'}, negInf:{approach:'x→-inf',output:'0'} },
+    hint:'The denominator factors as (x−2)(x+2), which is zero at x=2 but the numerator is not — vertical asymptote, −∞ from the left and +∞ from the right. For end behavior: numerator degree (0) is less than denominator degree (2), so f(x)→0 as x→±∞.',
+    xRange:[-1,5], yRange:[-10,10] },
+  { id:8, difficulty:'Medium', type:'point', func:'1/(x^2-4)', funcLatex:'f(x) = \\dfrac{1}{x^2-4}', a:-2,
+    classification:'asymptote', left:{approach:'x→-2-',output:'inf'}, right:{approach:'x→-2+',output:'-inf'},
+    endBehavior:{ posInf:{approach:'x→inf',output:'0'}, negInf:{approach:'x→-inf',output:'0'} },
+    hint:'Same function, different discontinuity — check the sign of (x−2)(x+2) on each side of x=−2. For end behavior: the reasoning is the same as before — f(x)→0 as x→±∞.',
+    xRange:[-5,1], yRange:[-10,10] },
+  { id:9, difficulty:'Hard', type:'point', func:'(x^3-1)/(x^2-1)', funcLatex:'f(x) = \\dfrac{x^3-1}{x^2-1}', a:1,
+    classification:'hole', left:{approach:'x→1-',output:'3/2'}, right:{approach:'x→1+',output:'3/2'}, holeY:1.5,
+    endBehavior:{ posInf:{approach:'x→inf',output:'inf'}, negInf:{approach:'x→-inf',output:'-inf'} },
+    hint:'Factor: numerator = (x−1)(x²+x+1), denominator = (x−1)(x+1). Cancel (x−1) to get (x²+x+1)/(x+1). At x=1, this is 3/2. For end behavior: after simplifying, f(x) behaves like x for large |x|, so it increases without bound as x→∞ and decreases without bound as x→−∞.',
+    xRange:[-0.5,3], yRange:[-1,6] },
+  { id:10, difficulty:'Hard', type:'point', func:'(x^2-3*x-10)/(x^2-x-20)', funcLatex:'f(x) = \\dfrac{x^2-3x-10}{x^2-x-20}', a:5,
+    classification:'hole', left:{approach:'x→5-',output:'7/9'}, right:{approach:'x→5+',output:'7/9'}, holeY:0.7778,
+    endBehavior:{ posInf:{approach:'x→inf',output:'1'}, negInf:{approach:'x→-inf',output:'1'} },
+    hint:'Factor both: (x−5)(x+2) over (x−5)(x+4). Cancel (x−5) to get (x+2)/(x+4). At x=5, this is 7/9. For end behavior: since f(x) simplifies to a ratio of two degree-1 expressions, the horizontal asymptote is y=1 (ratio of leading coefficients).',
+    xRange:[2,8], yRange:[-0.5,2] },
+  { id:11, difficulty:'End Behavior', type:'infinity', func:'(2*x+1)/x', funcLatex:'f(x) = \\dfrac{2x+1}{x}',
+    direction:'inf', answer:{approach:'x→inf',output:'2'},
+    hint:'Divide every term by x: f(x) = 2 + 1/x. As x→∞, the term 1/x→0, so f(x)→2.',
+    xRange:[-10,50], yRange:[-5,10] },
+  { id:12, difficulty:'End Behavior', type:'infinity', func:'(x^2+1)/x', funcLatex:'f(x) = \\dfrac{x^2+1}{x}',
+    direction:'inf', answer:{approach:'x→inf',output:'inf'},
+    hint:'This simplifies to x + 1/x. The degree of the numerator is greater than the denominator, so the function grows without bound as x→∞.',
+    xRange:[-5,30], yRange:[-10,35] },
+  { id:13, difficulty:'End Behavior', type:'infinity', func:'(x^2+1)/x', funcLatex:'f(x) = \\dfrac{x^2+1}{x}',
+    direction:'-inf', answer:{approach:'x→-inf',output:'-inf'},
+    hint:'Same function, opposite direction. As x→−∞, x + 1/x → −∞.',
+    xRange:[-30,5], yRange:[-35,10] }
+];
+
+let currentProblem = 0;
+let stats = { correct:0, attempted:0 };
+let currentChart = null;
+let classificationOK = false;
+let currentPhase = null; // 'discontinuity' | 'endbehavior' | 'infinity'
+let previewTimeout = null;
+
+function typeset(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([el]).catch(()=>{});
+  }
+}
+
+/* ---------- normalization / matching ---------- */
+function normalizeApproachInput(raw) {
+  let s = (raw||'').trim().toLowerCase();
+  s = s.replace(/\s+/g,'');
+  s = s.replace(/-{1,3}>/g,'→');
+  s = s.replace(/=>/g,'→');
+  s = s.replace(/infinity|infin|inf(?![a-z])/g,'∞');
+  s = s.replace(/\boo\b/g,'∞');
+  s = s.replace(/\^/g,'');
+  return s;
+}
+function approachToLatex(normalized) {
+  const m = normalized.match(/^x→(-?(?:\d+\.?\d*|∞))([+-])?$/);
+  if (!m) return 'x \\to \\,?';
+  let val = m[1].replace('∞','\\infty');
+  let side = m[2] || '';
+  let latex = 'x \\to ' + val;
+  if (side) latex += '^{' + side + '}';
+  return latex;
+}
+
+function normalizeOutputInput(raw) {
+  let s = (raw||'').trim().toLowerCase().replace(/\s+/g,'');
+  if (['inf','infinity','+inf','+infinity','∞','+∞'].includes(s)) return '∞';
+  if (['-inf','-infinity','-∞'].includes(s)) return '-∞';
+  if (/^-?\d+\/\d+$/.test(s)) { const [n,d]=s.split('/').map(Number); return (n/d).toString(); }
+  if (/^-?\d*\.?\d+$/.test(s)) return parseFloat(s).toString();
+  return s;
+}
+function outputsEqual(a,b) {
+  const na = normalizeOutputInput(a), nb = normalizeOutputInput(b);
+  if (na === nb) return true;
+  const fa = parseFloat(na), fb = parseFloat(nb);
+  if (!isNaN(fa) && !isNaN(fb) && isFinite(fa) && isFinite(fb)) return Math.abs(fa-fb) < 0.01;
+  return false;
+}
+function outputToLatex(raw) {
+  let s = (raw||'').trim();
+  let low = s.toLowerCase().replace(/\s+/g,'');
+  if (['inf','infinity','+inf','+infinity','∞','+∞'].includes(low)) return '\\infty';
+  if (['-inf','-infinity','-∞'].includes(low)) return '-\\infty';
+  if (/^-?\d+\/\d+$/.test(low)) {
+    const neg = low.startsWith('-') ? '-' : '';
+    const body = neg ? low.slice(1) : low;
+    const [n,d] = body.split('/');
+    return `${neg}\\frac{${n}}{${d}}`;
+  }
+  return s ? s.replace(/infinity|inf/gi,'\\infty') : '\\,?';
+}
+
+function evaluateRow(approachRaw, outputRaw, pair) {
+  const an = normalizeApproachInput(approachRaw);
+  let side = null;
+  if (an === normalizeApproachInput(pair.a.approach)) side = 'a';
+  else if (an === normalizeApproachInput(pair.b.approach)) side = 'b';
+  if (!side) return { approachOK:false, outputOK:false, side:null };
+  const expected = pair[side];
+  return { approachOK:true, outputOK: outputsEqual(outputRaw, expected.output), side };
+}
+
+/* ---------- rendering ---------- */
+function buildPromptHTML(problem) {
+  if (problem.type === 'point') {
+    return `Analyze $f(x)$ at the discontinuity $x = ${problem.a}$, then describe its end behavior.`;
+  } else {
+    const dirLatex = problem.direction === 'inf' ? '\\infty' : '-\\infty';
+    return `Describe the end behavior of $f(x)$ as $x \\to ${dirLatex}$.`;
+  }
+}
+
+function statementRowHTML(idx) {
+  return `
+  <div class="statement-row">
+    <div class="statement-label">Statement ${idx}</div>
+    <div class="limit-inputs">
+      <span class="lim-word">lim</span>
+      <input type="text" class="approach-input" id="stmt${idx}-approach" placeholder="x→a"
+        oninput="handleApproachInput(this); updatePreview(${idx})">
+      <span class="eq-sign">=</span>
+      <input type="text" class="output-input" id="stmt${idx}-output" placeholder="value, ∞, or -∞"
+        oninput="updatePreview(${idx})" onkeydown="if(event.key==='Enter'){checkStatements();}">
+    </div>
+    <div class="preview-box" id="stmt${idx}-preview">\\[ \\lim\\limits_{x \\to \\,?} f(x) = \\,? \\]</div>
+  </div>`;
+}
+
+function handleApproachInput(el) {
+  el.value = el.value.replace(/-{1,3}>/g,'→');
+}
+
+function updatePreview(idx) {
+  clearTimeout(previewTimeout);
+  previewTimeout = setTimeout(() => {
+    const aEl = document.getElementById(`stmt${idx}-approach`);
+    const oEl = document.getElementById(`stmt${idx}-output`);
+    if (!aEl || !oEl) return;
+    const approachLatex = aEl.value ? approachToLatex(normalizeApproachInput(aEl.value)) : 'x \\to \\,?';
+    const outputLatex = oEl.value ? outputToLatex(oEl.value) : '\\,?';
+    const box = document.getElementById(`stmt${idx}-preview`);
+    box.innerHTML = `\\[ \\lim\\limits_{${approachLatex}} f(x) = ${outputLatex} \\]`;
+    typeset(box);
+  }, 150);
+}
+
+function initProblem() {
+  const problem = problems[currentProblem];
+  classificationOK = (problem.type === 'infinity');
+
+  document.getElementById('problemNumber').textContent = currentProblem + 1;
+  document.getElementById('totalProblems').textContent = problems.length;
+  document.getElementById('progressFill').style.width = ((currentProblem/problems.length)*100) + '%';
+  document.getElementById('difficultyBadge').textContent = problem.difficulty;
+
+  const funcEl = document.getElementById('functionDisplay');
+  funcEl.innerHTML = `$$${problem.funcLatex}$$`;
+  const promptEl = document.getElementById('prompt');
+  promptEl.innerHTML = buildPromptHTML(problem);
+
+  const classSection = document.getElementById('classificationSection');
+  const stmtSection = document.getElementById('statementsSection');
+  const stmtLabel = document.getElementById('statementsLabel');
+  const stmtPrompt = document.getElementById('statementsPrompt');
+  const rowsContainer = document.getElementById('statementRows');
+
+  if (problem.type === 'point') {
+    currentPhase = 'discontinuity';
+    classSection.style.display = 'block';
+    document.getElementById('classificationQuestion').innerHTML = `Is $x = ${problem.a}$ a hole or a vertical asymptote?`;
+    document.getElementById('classificationFeedback').textContent = '';
+    document.getElementById('classificationFeedback').className = 'classification-feedback';
+    const holeBtn = document.getElementById('holeBtn');
+    const vaBtn = document.getElementById('asymptoteBtn');
+    holeBtn.className = 'classify-btn'; holeBtn.disabled = false;
+    vaBtn.className = 'classify-btn'; vaBtn.disabled = false;
+
+    stmtLabel.textContent = 'Step 2: One-Sided Limits at the Discontinuity';
+    stmtPrompt.innerHTML = `Write two limit statements describing the behavior on each side of $x = ${problem.a}$.`;
+    stmtSection.classList.add('locked');
+    rowsContainer.innerHTML = statementRowHTML(1) + statementRowHTML(2);
+  } else {
+    currentPhase = 'infinity';
+    classSection.style.display = 'none';
+    stmtLabel.textContent = 'Write the Limit Statement';
+    stmtPrompt.innerHTML = '';
+    stmtSection.classList.remove('locked');
+    rowsContainer.innerHTML = statementRowHTML(1);
+  }
+
+  typeset(funcEl);
+  typeset(promptEl);
+  if (problem.type === 'point') { typeset(document.getElementById('classificationQuestion')); typeset(stmtPrompt); }
+  updatePreview(1);
+  if (problem.type === 'point') updatePreview(2);
+
+  const checkBtn = document.getElementById('checkBtn');
+  checkBtn.disabled = false;
+  checkBtn.style.display = 'block';
+  document.getElementById('feedback').classList.remove('show','success','error');
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('hintBox').textContent = problem.hint;
+  document.getElementById('graphContainer').classList.add('hidden');
+}
+
+function toggleGraph() {
+  const c = document.getElementById('graphContainer');
+  c.classList.toggle('hidden');
+  if (!c.classList.contains('hidden')) setTimeout(() => drawGraph(problems[currentProblem]), 80);
+}
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+
+function selectClassification(choice) {
+  const problem = problems[currentProblem];
+  const holeBtn = document.getElementById('holeBtn');
+  const vaBtn = document.getElementById('asymptoteBtn');
+  const fb = document.getElementById('classificationFeedback');
+  const correct = choice === problem.classification;
+
+  if (correct) {
+    (choice === 'hole' ? holeBtn : vaBtn).classList.add('correct');
+    holeBtn.disabled = true; vaBtn.disabled = true;
+    fb.textContent = choice === 'hole'
+      ? '✓ Correct — this is a hole. Expect equal, finite outputs on both sides.'
+      : '✓ Correct — this is a vertical asymptote. Expect ∞ or −∞ as the outputs.';
+    fb.className = 'classification-feedback correct-text';
+    classificationOK = true;
+    document.getElementById('statementsSection').classList.remove('locked');
+  } else {
+    (choice === 'hole' ? holeBtn : vaBtn).classList.add('incorrect');
+    fb.textContent = 'Not quite — check whether the zero in the denominator is also a zero of the numerator (after factoring).';
+    fb.className = 'classification-feedback incorrect-text';
+    setTimeout(() => { holeBtn.classList.remove('incorrect'); vaBtn.classList.remove('incorrect'); }, 900);
+  }
+}
+
+function checkStatements() {
+  const problem = problems[currentProblem];
+  if (problem.type === 'point' && !classificationOK) return;
+
+  stats.attempted++;
+  document.getElementById('attempted').textContent = stats.attempted;
+
+  if (problem.type === 'infinity') {
+    const a = document.getElementById('stmt1-approach').value;
+    const o = document.getElementById('stmt1-output').value;
+    if (!a || !o) { showFeedback('error','Incomplete','Please fill in both the approach and the output.'); return; }
+    const pair = { a: problem.answer, b: problem.answer };
+    const e = evaluateRow(a,o,pair);
+    if (e.side && e.outputOK) { markCorrect(); return; }
+    let msg = '';
+    if (!e.side) msg += 'Check your approach notation. ';
+    else if (!e.outputOK) msg += 'Check your output value. ';
+    showFeedback('error','Not Correct', msg + 'Try again!');
+    return;
+  }
+
+  // point type: two rows, order-independent, phase-dependent expected pair
+  const pair = currentPhase === 'discontinuity'
+    ? { a: problem.left, b: problem.right }
+    : { a: problem.endBehavior.posInf, b: problem.endBehavior.negInf };
+
+  const a1 = document.getElementById('stmt1-approach').value;
+  const o1 = document.getElementById('stmt1-output').value;
+  const a2 = document.getElementById('stmt2-approach').value;
+  const o2 = document.getElementById('stmt2-output').value;
+
+  if (!a1 || !o1 || !a2 || !o2) {
+    showFeedback('error','Incomplete','Please complete both limit statements.');
+    return;
+  }
+
+  const e1 = evaluateRow(a1,o1,pair);
+  const e2 = evaluateRow(a2,o2,pair);
+  const fullyCorrect = e1.side && e2.side && e1.side !== e2.side && e1.outputOK && e2.outputOK;
+
+  if (fullyCorrect) {
+    if (currentPhase === 'discontinuity') {
+      showFeedback('success','Correct!','✓ Nice work on the discontinuity. Now describe the end behavior below.');
+      const checkBtn = document.getElementById('checkBtn');
+      checkBtn.disabled = true;
+      setTimeout(() => { transitionToEndBehavior(problem); checkBtn.disabled = false; }, 1400);
+    } else {
+      markCorrect();
+    }
+    return;
+  }
+
+  let msg = '';
+  const sameSideWord = currentPhase === 'discontinuity' ? 'side' : 'direction';
+  if (e1.side && e2.side && e1.side === e2.side) {
+    msg = currentPhase === 'discontinuity'
+      ? 'Both statements describe the same side. You need one left-hand and one right-hand limit.'
+      : 'Both statements describe the same direction. You need one statement for x→∞ and one for x→−∞.';
+  } else {
+    if (!e1.side) msg += 'Statement 1: check your approach notation. ';
+    else if (!e1.outputOK) msg += 'Statement 1: approach notation is right, but check the output value. ';
+    if (!e2.side) msg += 'Statement 2: check your approach notation. ';
+    else if (!e2.outputOK) msg += 'Statement 2: approach notation is right, but check the output value. ';
+    if (!msg) msg = `Not quite — double-check both statements (make sure they cover different ${sameSideWord}s).`;
+  }
+  showFeedback('error','Not Correct', msg);
+}
+
+function transitionToEndBehavior(problem) {
+  currentPhase = 'endbehavior';
+  document.getElementById('statementsLabel').textContent = 'Step 3: End Behavior';
+  const stmtPrompt = document.getElementById('statementsPrompt');
+  stmtPrompt.innerHTML = `Write two limit statements describing the end behavior of $f(x)$: one as $x \\to \\infty$ and one as $x \\to -\\infty$.`;
+  typeset(stmtPrompt);
+  document.getElementById('statementRows').innerHTML = statementRowHTML(1) + statementRowHTML(2);
+  updatePreview(1); updatePreview(2);
+  document.getElementById('feedback').classList.remove('show','success','error');
+}
+
+function markCorrect() {
+  stats.correct++;
+  document.getElementById('correct').textContent = stats.correct;
+  showFeedback('success','Correct!','✓ Your limit notation is complete and correct!');
+  document.getElementById('checkBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function showFeedback(type,title,message) {
+  const feedback = document.getElementById('feedback');
+  feedback.className = `feedback show ${type}`;
+  feedback.innerHTML = `<div class="feedback-title">${title}</div>${message}`;
+}
+
+function nextProblem() {
+  currentProblem++;
+  if (currentProblem >= problems.length) showCompletion();
+  else initProblem();
+}
+
+function showCompletion() {
+  document.getElementById('mainContent').style.display = 'none';
+  const completion = document.getElementById('completionMessage');
+  completion.classList.add('show');
+  const accuracy = stats.attempted ? Math.round((stats.correct/stats.attempted)*100) : 0;
+  document.getElementById('finalScore').textContent = `Accuracy: ${accuracy}% (${stats.correct}/${stats.attempted})`;
+}
+
+function resetAll() {
+  currentProblem = 0;
+  stats = { correct:0, attempted:0 };
+  document.getElementById('correct').textContent = '0';
+  document.getElementById('attempted').textContent = '0';
+  document.getElementById('mainContent').style.display = 'grid';
+  document.getElementById('completionMessage').classList.remove('show');
+  initProblem();
+}
+
+/* ---------- graphing ---------- */
+function drawGraph(problem) {
+  const canvas = document.getElementById('myChart');
+  if (!canvas) return;
+  if (currentChart) currentChart.destroy();
+
+  const [xMin,xMax] = problem.xRange;
+  const [yMin,yMax] = problem.yRange;
+  const step = (xMax - xMin) / 700;
+  const pad = (yMax - yMin) * 0.6;
+
+  let segments = [];
+  let current = [];
+  for (let x = xMin; x <= xMax; x += step) {
+    let y;
+    try { y = math.evaluate(problem.func, { x }); } catch(e) { y = NaN; }
+    if (typeof y === 'number' && isFinite(y) && y > yMin - pad && y < yMax + pad) {
+      current.push({ x: parseFloat(x.toFixed(4)), y: parseFloat(y.toFixed(4)) });
+    } else {
+      if (current.length > 1) segments.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 1) segments.push(current);
+
+  const datasets = segments.map((seg,i) => ({
+    label: i === 0 ? 'f(x)' : '',
+    data: seg, borderColor:'#667eea', backgroundColor:'rgba(102,126,234,0.08)',
+    borderWidth:2.5, fill:false, pointRadius:0, showLine:true, tension:0
+  }));
+
+  if (problem.type === 'point') {
+    if (problem.classification === 'hole') {
+      datasets.push({
+        label:'hole', data:[{x:problem.a, y:problem.holeY}], showLine:false,
+        pointStyle:'circle', pointRadius:7, pointBorderWidth:2.5,
+        pointBorderColor:'#e53e3e', pointBackgroundColor:'white'
+      });
+    } else {
+      datasets.push({
+        label:'asymptote', data:[{x:problem.a,y:yMin},{x:problem.a,y:yMax}],
+        borderColor:'#a0aec0', borderDash:[6,6], borderWidth:2, pointRadius:0, showLine:true, fill:false
+      });
+    }
+  }
+
+  currentChart = new Chart(canvas, {
+    type:'scatter',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ labels:{ filter:(item)=>item.text!=='' } } },
+      scales:{
+        x:{ type:'linear', min:xMin, max:xMax, title:{display:true,text:'x'} },
+        y:{ min:yMin, max:yMax, title:{display:true,text:'f(x)'} }
+      }
+    }
+  });
+}
+
+initProblem();
+</script>
+</body>
+</html>
